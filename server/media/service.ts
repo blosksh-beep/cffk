@@ -13,6 +13,17 @@ const MIME_EXTENSIONS: Record<string, string> = {
   "image/gif": "gif",
   "application/pdf": "pdf",
 };
+const ALLOWED_BROWSER_MIMES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/pjpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+  "",
+  "application/octet-stream",
+]);
 const MAX_BYTES: Record<string, number> = { image: 3 * 1024 * 1024, application: 10 * 1024 * 1024 };
 
 type S3Credentials = { accessKeyId: string; secretAccessKey: string };
@@ -155,7 +166,7 @@ export async function validateMediaFile(file: File) {
   if (!file.size) appError("MEDIA_FILE_SIZE_INVALID");
   const bytes = new Uint8Array(await file.arrayBuffer());
   const mime = detectedMime(bytes);
-  if (!mime || !MIME_EXTENSIONS[mime] || file.type !== mime || bytes.byteLength > maxFor(mime)) appError("MEDIA_TYPE_NOT_ALLOWED");
+  if (!mime || !MIME_EXTENSIONS[mime] || !ALLOWED_BROWSER_MIMES.has(file.type) || bytes.byteLength > maxFor(mime)) appError("MEDIA_TYPE_NOT_ALLOWED");
   return { name, bytes, mime };
 }
 
